@@ -17,6 +17,6 @@ func main() {
 	if port == "" {
 		port = "5000"
 	}
-	address := fmt.Sprintf("127.0.0.1:%v", port)
+	address := fmt.Sprintf("0.0.0.0:%v", port)
 	app.Run(iris.Addr(address))
 }
