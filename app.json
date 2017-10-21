@@ -1,0 +1,16 @@
+{
+    "name": "Facebook Messenger Bot",
+    "description": "Facebook messenger bot example",
+    "keywords": [
+      "facebook",
+      "go",
+      "messenger",
+      "bot",
+      "example"
+    ],
+    "image": "heroku/go:1.9",
+    "mount_dir": "src/github.com/thomas91310/bot-playground",
+    "website": "http://github.com/thomas91310/bot-playground",
+    "repository": "http://github.com/thomas91310/bot-playground"
+  }
+  
