@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/kataras/iris"
 	"github.com/thomas91310/bot-playground/routes"
 )
@@ -10,6 +13,10 @@ func main() {
 
 	app.Controller("/ping", new(routes.PingRoute))
 	app.Controller("/webhook", new(routes.WebhookRoute))
-
-	app.Run(iris.Addr("127.0.0.1:5000"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5000"
+	}
+	address := fmt.Sprintf("127.0.0.1:%v", port)
+	app.Run(iris.Addr(address))
 }
