@@ -1,18 +1,20 @@
 package routes
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/kataras/iris/mvc"
 	"github.com/thomas91310/bot-playground/models"
 )
 
-//FBWebhookRoute .
+//FBWebhookRoute handles facebook requests
 type FBWebhookRoute struct {
 	mvc.Controller
 }
 
-//Get Ping returns Pong
+//Get FBWebhook returns what Facebook expects from the get webhook endpoint
 func (fbWR *FBWebhookRoute) Get() string {
 	qs := fbWR.Ctx.Request().URL.Query()
 	token, exists := qs["hub.verify_token"]
@@ -27,4 +29,11 @@ func (fbWR *FBWebhookRoute) Get() string {
 		return models.MakeBadResp(400, "Invalid request")
 	}
 	return expectedFromFB[0]
+}
+
+func (fbWR *FBWebhookRoute) Post() string {
+	body, err := ioutil.ReadAll(fbWR.Ctx.Request().Body)
+	fmt.Println(string(body))
+	fmt.Println(err)
+	return "yo"
 }
