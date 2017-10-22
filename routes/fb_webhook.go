@@ -1,8 +1,12 @@
 package routes
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 
 	"github.com/kataras/iris/mvc"
@@ -31,9 +35,50 @@ func (fbWR *FBWebhookRoute) Get() string {
 	return expectedFromFB[0]
 }
 
-func (fbWR *FBWebhookRoute) Post() string {
+//Post FBWebhook handles posts from facebook
+//Messenger messages from people to the bot are coming in here
+func (fbWR *FBWebhookRoute) Post() {
+	FBmessageInput := new(models.FBMessageInput)
+
 	body, err := ioutil.ReadAll(fbWR.Ctx.Request().Body)
-	fmt.Println(string(body))
-	fmt.Println(err)
-	return "yo"
+	err = json.Unmarshal(body, FBmessageInput)
+	if err != nil {
+		log.Printf("Error unmarshalling message from facebook: %v. Got %v", body, err)
+		return
+	}
+
+	fbWR.Respond(FBmessageInput.Entry[0].Messaging[0].Sender.ID)
+}
+
+//Respond creates a message and sends it to the sender
+func (fbWR *FBWebhookRoute) Respond(senderID string) error {
+	message := models.FBMessageOutput{
+		Recipient: models.FBRecipient{
+			ID: senderID,
+		},
+		Message: models.FBMessageText{
+			Text: "I'm just a little something",
+		},
+	}
+
+	bb := new(bytes.Buffer)
+	err := json.NewEncoder(bb).Encode(message)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(
+		message.GetURL(),
+		"application/json",
+		bb,
+	)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(bb.Bytes()))
+	b, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("resp : ", string(b))
+
+	return nil
 }
