@@ -37,17 +37,32 @@ func (fbWR *FBWebhookRoute) Get() string {
 
 //Post FBWebhook handles posts from facebook
 //Messenger messages from people to the bot are coming in here
-func (fbWR *FBWebhookRoute) Post() {
+func (fbWR *FBWebhookRoute) Post() *string {
 	FBmessageInput := new(models.FBMessageInput)
 
 	body, err := ioutil.ReadAll(fbWR.Ctx.Request().Body)
+	fmt.Println("body: ", string(body))
 	err = json.Unmarshal(body, FBmessageInput)
 	if err != nil {
 		log.Printf("Error unmarshalling message from facebook: %v. Got %v", body, err)
-		return
+		return nil
 	}
 
-	fbWR.Respond(FBmessageInput.Entry[0].Messaging[0].Sender.ID)
+	for _, message := range FBmessageInput.Entry[0].Messaging {
+		sender := message.Sender.ID
+
+		if message.Message.Text == "" || message.Message.Text == "I'm just a little something" {
+			continue
+		}
+
+		err = fbWR.Respond(sender)
+		if err != nil {
+			log.Printf("%v", err)
+		}
+	}
+
+	fbWR.Ctx.StatusCode(200)
+	return nil
 }
 
 //Respond creates a message and sends it to the sender
@@ -67,7 +82,7 @@ func (fbWR *FBWebhookRoute) Respond(senderID string) error {
 		return err
 	}
 
-	resp, err := http.Post(
+	_, err = http.Post(
 		message.GetURL(),
 		"application/json",
 		bb,
@@ -75,10 +90,6 @@ func (fbWR *FBWebhookRoute) Respond(senderID string) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(string(bb.Bytes()))
-	b, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("resp : ", string(b))
 
 	return nil
 }
