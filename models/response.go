@@ -12,27 +12,30 @@ const (
 //Response enveloppe
 type Response struct {
 	//Data contains the actual data
-	Data interface{} `json: "data"`
+	Data interface{} `json:"data,omitempty"`
+	//Message is an informative message
+	Message string `json: "message"`
 	//Meta adds metadata to the response
-	Meta Meta `json: "meta"`
+	Meta Meta `json:"meta"`
 }
 
 //Meta contains a status, a HTTP code and a version
 type Meta struct {
-	Status  string `json "status"`
-	Code    int    `json: "code"`
-	Version string `json: "version"`
+	Status  string `json:"status"`
+	Code    int    `json:"code"`
+	Version string `json:"version"`
 }
 
 //MakeBadResp returns a fromatted bad response
-func MakeBadResp(code int) string {
+func MakeBadResp(code int, message string) string {
 	resp := Response{
 		Meta: Meta{
 			Status:  "ERROR",
 			Code:    code,
 			Version: Version,
 		},
-		Data: nil,
+		Message: message,
+		Data:    nil,
 	}
 	badResp, _ := json.Marshal(resp)
 	return string(badResp)
@@ -51,7 +54,7 @@ func MakeResp(code int, data interface{}) string {
 	}
 	goodResp, err := json.Marshal(resp)
 	if err != nil {
-		return MakeBadResp(400)
+		return MakeBadResp(500, "Internal server error")
 	}
 	return string(goodResp)
 }
